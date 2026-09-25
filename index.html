@@ -35,25 +35,20 @@
             header.setUint8(155, 32);
             return headerBytes;
         }
-        function saveUint8ArrayAsFile(uint8Array, filename, mimeType = 'application/octet-stream') {
-            const blob = new Blob([uint8Array], { type: mimeType });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
+        function saveFile(data, name, mimeType = 'application/octet-stream') {
+            let url = URL.createObjectURL(new Blob([data], {type: mimeType}));
+            let a = document.createElement('a');
             a.href = url;
-            a.download = filename;
+            a.download = name;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
         document.getElementById('downloadBtn').addEventListener('click', () => {
-            try {
-                let name = document.getElementById('nameInput').value;
-                let path = document.getElementById('pathInput').value;
-                saveUint8ArrayAsFile(make_tar(name, path), `${name}.tar`);
-            } catch (err) {
-                console.error(err);
-            }
+            let name = document.getElementById('nameInput').value;
+            let path = document.getElementById('pathInput').value;
+            saveFile(make_tar(name, path), `${name}.tar`);
         });
     </script>
 </body>
