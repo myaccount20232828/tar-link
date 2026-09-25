@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test</title>
+</head>
+<body>
+    <button id="downloadBtn">Make</button>
+    <input type="text" id="nameInput" value="Root FS">
+    <input type="text" id="pathInput" value="/">
+    <script>
+        function tar_field(header, dst, len, value) {
+            let n = value.length > len ? len : value.length;
+            for (let i = 0; i < n; i++) header.setUint8(dst + i, value.charCodeAt(i));
+        }
+        function make_tar(name, path) {
+            let headerBytes = new Uint8Array(512);
+            let header = new DataView(headerBytes.buffer);
+            tar_field(header, 0, 100, `Folder/${name}`);
+            tar_field(header, 100, 8, "0000777");
+            tar_field(header, 108, 8, "0000000");
+            tar_field(header, 116, 8, "0000000");
+            tar_field(header, 124, 12, "00000000000");
+            tar_field(header, 136, 12, "00000000000");
+            tar_field(header, 148, 8, "        ");
+            header.setUint8(156, 50);
+            tar_field(header, 157, 100, path);
+            tar_field(header, 257, 5, "ustar");
+            tar_field(header, 263, 2, "00");
+            let checksum = 0;
+            for (let i = 0; i < 512; i++) checksum += header.getUint8(i);
+            tar_field(header, 148, 8, checksum.toString(8).padStart(6, "0"));
+            header.setUint8(154, 0);
+            header.setUint8(155, 32);
+            return headerBytes;
+        }
+        function saveUint8ArrayAsFile(uint8Array, filename, mimeType = 'application/octet-stream') {
+            const blob = new Blob([uint8Array], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            try {
+                let name = document.getElementById('nameInput').value;
+                let path = document.getElementById('pathInput').value;
+                saveUint8ArrayAsFile(make_tar(name, path), `${name}.tar`);
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+</html>
