@@ -11,8 +11,9 @@
     <input type="text" id="pathInput" value="/">
     <script>
         function tar_field(header, dst, len, value) {
-            let n = value.length > len ? len : value.length;
-            for (let i = 0; i < n; i++) header.setUint8(dst + i, value.charCodeAt(i));
+            let n = Math.min(value.length, len);
+            let bytes = new TextEncoder().encode(value);
+            for (let i = 0; i < n; i++) header.setUint8(dst + i, bytes[i]);
         }
         function make_tar(name, path) {
             let headerBytes = new Uint8Array(512);
