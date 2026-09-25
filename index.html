@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test</title>
+    <title>TAR Generator</title>
 </head>
 <body>
-    <button id="downloadBtn">Make</button>
+    <button id="downloadBtn">Make TAR</button>
     <input type="text" id="nameInput" value="Root FS">
     <input type="text" id="pathInput" value="/">
     <script>
         function tar_field(header, dst, len, value) {
-            let n = Math.min(value.length, len);
             let bytes = new TextEncoder().encode(value);
+            let n = Math.min(bytes.length, len);
             for (let i = 0; i < n; i++) header.setUint8(dst + i, bytes[i]);
         }
         function make_tar(name, path) {
