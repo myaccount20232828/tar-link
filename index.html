@@ -25,14 +25,13 @@
             tar_field(header, 124, 12, "00000000000");
             tar_field(header, 136, 12, "00000000000");
             tar_field(header, 148, 8, "        ");
-            header.setUint8(156, 50);
+            tar_field(header, 156, 1, "2");
             tar_field(header, 157, 100, path);
             tar_field(header, 257, 5, "ustar");
             tar_field(header, 263, 2, "00");
             let checksum = 0;
             for (let i = 0; i < 512; i++) checksum += header.getUint8(i);
             tar_field(header, 148, 8, checksum.toString(8).padStart(6, "0"));
-            header.setUint8(154, 0);
             header.setUint8(155, 32);
             return headerBytes;
         }
