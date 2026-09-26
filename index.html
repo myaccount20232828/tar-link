@@ -23,7 +23,7 @@
             tar_field(header, 108, 8, "0000000");
             tar_field(header, 116, 8, "0000000");
             tar_field(header, 124, 12, "00000000000");
-            tar_field(header, 136, 12, "00000000000");
+            tar_field(header, 136, 12, Math.floor(Date.now() / 1000).toString(8));
             tar_field(header, 148, 8, "        ");
             tar_field(header, 156, 1, "2");
             tar_field(header, 157, 100, path);
