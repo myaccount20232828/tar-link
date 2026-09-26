@@ -32,6 +32,7 @@
             let checksum = 0;
             for (let i = 0; i < 512; i++) checksum += header.getUint8(i);
             tar_field(header, 148, 8, checksum.toString(8).padStart(6, "0"));
+            header.setUint8(154, 0);
             header.setUint8(155, 32);
             return headerBytes;
         }
