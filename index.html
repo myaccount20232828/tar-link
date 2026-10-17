@@ -15,18 +15,18 @@
             let n = Math.min(bytes.length, len);
             for (let i = 0; i < n; i++) header.setUint8(dst + i, bytes[i]);
         }
-        function make_tar(name, path) {
+        function make_tar_block(name, typeFlag, size, linkName) {
             let headerBytes = new Uint8Array(512);
             let header = new DataView(headerBytes.buffer);
-            tar_field(header, 0, 100, `Folder/${name}`);
+            tar_field(header, 0, 100, name);
             tar_field(header, 100, 8, "0000777");
             tar_field(header, 108, 8, "0000000");
             tar_field(header, 116, 8, "0000000");
-            tar_field(header, 124, 12, "00000000000");
+            tar_field(header, 124, 12, size.toString(8).padStart(11, "0"));
             tar_field(header, 136, 12, Math.floor(Date.now() / 1000).toString(8));
             tar_field(header, 148, 8, "        ");
-            tar_field(header, 156, 1, "2");
-            tar_field(header, 157, 100, path);
+            tar_field(header, 156, 1, typeFlag);
+            tar_field(header, 157, 100, linkName);
             tar_field(header, 257, 5, "ustar");
             tar_field(header, 263, 2, "00");
             let checksum = 0;
@@ -35,6 +35,18 @@
             header.setUint8(154, 0);
             header.setUint8(155, 32);
             return headerBytes;
+        }
+        function make_tar_symlink(name, path) {
+            let pathBytes = new TextEncoder().encode(path);
+            let longLinkHeader = make_tar_block("././@LongLink", "K", pathBytes.length, "");
+            let entryHeader = make_tar_block(`Folder/${name}`, "2", 0, path);
+            let dataBlock = new Uint8Array(Math.ceil(pathBytes.length / 512) * 512);
+            dataBlock.set(pathBytes);
+            let result = new Uint8Array(longLinkHeader.length + dataBlock.length + entryHeader.length);
+            result.set(longLinkHeader, 0);
+            result.set(dataBlock, longLinkHeader.length);
+            result.set(entryHeader, longLinkHeader.length + dataBlock.length);
+            return result;
         }
         function saveFile(data, name, mimeType = 'application/octet-stream') {
             let url = URL.createObjectURL(new Blob([data], {type: mimeType}));
@@ -49,7 +61,7 @@
         document.getElementById('downloadBtn').addEventListener('click', () => {
             let name = document.getElementById('nameInput').value;
             let path = document.getElementById('pathInput').value;
-            saveFile(make_tar(name, path), `${name}.tar`);
+            saveFile(make_tar_symlink(name, path), `${name}.tar`);
         });
     </script>
 </body>
